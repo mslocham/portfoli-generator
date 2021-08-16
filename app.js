@@ -1,5 +1,7 @@
 const inquirer = require('inquirer');
-const fs = require('fs');
+// Because we exported an object from generate-site.js, we can use object destructuring to
+// create variables out of those properties 
+const { writeFile, copyFile } = require('./utils/generate-site.js');
 const generatePage = require('./src/page-template.js')
 
 
@@ -23,20 +25,25 @@ const generatePage = require('./src/page-template.js')
   // printProfileData(profileDataArgs);
 
   // const name = profileDataArgs[0];
-  // const github = profileDataArgs[1];
-  
+  // const github = profileDataArgs[1];  
 
+fs.writeFile('./dist/index.html', pageHTML, err => {
+  if (err) {
+    console.log(err);
+    return;
+  }
+  console.log('Page created! Check out index.html in this directory to see it!');
 
+  fs.copyFile('./src/style.css', './dist/style.css', err => {
+    if (err) {
+      console.log(err);
+      return;
+    }
+    console.log('Style sheet copied successfully!');
+  });
+});
 
-  // const pageHTML = generatePage(name, github);
-  
-  // fs.writeFile('./index.html', generatePage(name, github), err => {
-  //   if (err) throw new Error(err);
-  
-  //   console.log('Portfolio complete! Check out index.html to see the output!');
-  // });
-
-  const promptUser = () => {
+const promptUser = () => {
     return inquirer.prompt([
       {
         type: 'input',
@@ -169,13 +176,20 @@ const generatePage = require('./src/page-template.js')
   };
 
   promptUser()
-    .then(promptProject)
-    .then(portfolioData => {
-      const pageHTML = generatePage(portfolioData);
-
-    // fs.writeFile('./index.html', pageHTML, err => {
-    //   if (err) throw new Error(err);
-
-    //   console.log('Page created! Check out index.html in this directory to see it!');
-    // });
+  .then(promptProject)
+  .then(portfolioData => {
+    return generatePage(portfolioData);
+  })
+  .then(pageHTML => {
+    return writeFile(pageHTML);
+  })
+  .then(writeFileResponse => {
+    console.log(writeFileResponse);
+    return copyFile();
+  })
+  .then(copyFileResponse => {
+    console.log(copyFileResponse);
+  })
+  .catch(err => {
+    console.log(err);
   });
